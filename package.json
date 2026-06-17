@@ -1,0 +1,19 @@
+{
+  "name": "fishstock",
+  "private": true,
+  "version": "0.1.0",
+  "description": "FishStock desktop quote disguise tool",
+  "scripts": {
+    "desktop:dev": "npm --workspace apps/desktop run dev",
+    "desktop:build": "npm --workspace apps/desktop run build",
+    "tauri:dev": "npm --workspace apps/desktop run tauri:dev",
+    "tauri:build": "npm --workspace apps/desktop run tauri:build",
+    "gateway:dev": "cd services/quote-gateway && ../../.venv/bin/uvicorn app.main:app --reload --host 127.0.0.1 --port 8787",
+    "env:setup": "./scripts/setup-local.sh",
+    "env:dev": "./scripts/dev-local.sh",
+    "env:cleanup": "./scripts/cleanup-local.sh"
+  },
+  "workspaces": [
+    "apps/desktop"
+  ]
+}
