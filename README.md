@@ -45,7 +45,7 @@ npm run gateway:dev
 npm run tauri:dev
 ```
 
-也可以启动 Web 预览和后端：
+也可以一键启动后端和 Tauri 桌面应用：
 
 ```bash
 npm run env:dev
@@ -55,7 +55,6 @@ npm run env:dev
 
 - Quote gateway：http://127.0.0.1:8787
 - Vite dev server：http://127.0.0.1:5173
-- Web 预览脚本：http://127.0.0.1:5174
 
 ## 常用脚本
 

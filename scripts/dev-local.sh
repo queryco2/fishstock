@@ -26,6 +26,6 @@ trap cleanup EXIT INT TERM
 GATEWAY_PID=$!
 
 echo "Quote gateway started on http://127.0.0.1:8787"
-echo "Desktop preview starting on http://127.0.0.1:5174"
+echo "Tauri desktop app starting with Vite on http://127.0.0.1:5173"
 
-npm --workspace apps/desktop run dev -- --port 5174
+npm run tauri:dev
