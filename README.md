@@ -69,6 +69,8 @@ npm run gateway:dev
 npm run tauri:dev
 ```
 
+如需启用东方财富远程标的搜索，可在本地环境中设置 `EASTMONEY_SEARCH_TOKEN`。
+
 ## 常用命令
 
 ```bash

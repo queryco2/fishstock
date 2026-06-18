@@ -1,3 +1,5 @@
+import os
+
 import requests
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -57,13 +59,17 @@ def source_status():
 
 
 def eastmoney_search_symbols(keyword: str) -> list[SymbolSearchResult]:
+    params = {
+        "input": keyword,
+        "type": "14",
+    }
+    search_token = os.getenv("EASTMONEY_SEARCH_TOKEN")
+    if search_token:
+        params["token"] = search_token
+
     response = requests.get(
         "https://searchapi.eastmoney.com/api/suggest/get",
-        params={
-            "input": keyword,
-            "type": "14",
-            "token": "REDACTED_EASTMONEY_SEARCH_TOKEN",
-        },
+        params=params,
         headers={"User-Agent": "Mozilla/5.0", "Referer": "https://quote.eastmoney.com/"},
         timeout=8,
     )
