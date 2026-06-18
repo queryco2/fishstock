@@ -1,23 +1,25 @@
 # FishStock
 
-FishStock 是一个伪装成办公软件的轻量级桌面行情看板。
+FishStock 是一个伪装成办公软件的桌面行情看板。它可以添加自选股票、ETF、指数等标的，并把行情数据映射成库存、天气、日历、账本、项目、邮件、物流和系统监控等办公场景。
 
-它使用 Tauri、React、TypeScript 和 FastAPI 构建，可以添加自选股票、ETF、指数等标的，并把行情数据展示成更像办公场景的界面：表格、天气、日历、记账本、项目看板、邮箱、物流追踪和系统监控。
+这个项目适合个人桌面工具、Tauri 练习、行情网关实验，以及“摸鱼式”信息看板原型。
 
-> FishStock 仅用于个人学习与桌面工具实验，行情数据仅供参考，不构成任何投资建议。
+> FishStock 仅供学习和个人工具实验。行情数据仅供参考，不构成任何投资建议。
 
-## 功能
+## 项目亮点
 
-- Tauri 桌面应用，支持 macOS / Windows 扩展构建
-- React + TypeScript 前端
+- Tauri v2 桌面应用，面向 macOS / Windows 打包
+- React + TypeScript + Vite 前端
 - FastAPI quote gateway 后端
-- 自选标的本地保存
-- 多种伪装模式
-- 超级伪装模式：隐藏真实股票名称，只保留编号与数值映射
-- 本地 fallback/demo 数据，方便离线开发
-- 一键本地环境启动脚本
+- 支持自选标的、本地状态保存和定时刷新
+- 多种办公伪装界面，一键切换
+- 隐藏模式不展示真实股票名称，只保留编号和数值映射
+- 本地 demo/fallback 数据，后端不可用时也能开发调试
+- 新 APP 图标：鱼 + 股票上涨图形，已接入 Tauri bundle 配置
 
-## 模式
+## 界面模式
+
+FishStock 当前包含这些展示模式：
 
 - 产品库存表
 - 城市天气
@@ -28,58 +30,112 @@ FishStock 是一个伪装成办公软件的轻量级桌面行情看板。
 - 物流追踪
 - 系统监控
 
-在隐藏模式下，底层数据仍保持原始行情数据，但展示字段会映射成库存、优先级、进度偏差、进程占用等办公语义。
+正常模式下可以看到真实标的名称；隐藏模式下会把名称替换成更符合办公场景的内容，例如产品名称、城市、项目名、邮件主题、运单状态或进程名称。底层行情数值不会被修改。
 
 ## 技术栈
 
 - Desktop：Tauri v2
 - Frontend：React 19、TypeScript、Vite、Zustand、AG Grid Community
-- Backend：FastAPI、Uvicorn
-- Package manager：npm workspaces
+- Backend：FastAPI、Uvicorn、Requests、Pydantic
+- Tooling：npm workspaces、GitHub Actions
 
 ## 快速开始
 
+先安装依赖：
+
 ```bash
 npm run env:setup
-npm run gateway:dev
-npm run tauri:dev
 ```
 
-也可以一键启动后端和 Tauri 桌面应用：
+推荐使用一键本地启动：
 
 ```bash
 npm run env:dev
 ```
 
-默认地址：
+这个命令会同时启动：
 
 - Quote gateway：http://127.0.0.1:8787
+- Tauri 桌面应用
 - Vite dev server：http://127.0.0.1:5173
 
-## 常用脚本
+如果想拆开运行，可以分别开两个终端：
 
 ```bash
-npm run desktop:dev
-npm run desktop:build
-npm run tauri:dev
-npm run tauri:build
 npm run gateway:dev
-npm run env:setup
-npm run env:dev
-npm run env:cleanup
+```
+
+```bash
+npm run tauri:dev
+```
+
+## 常用命令
+
+```bash
+npm run desktop:dev      # 仅启动 Vite 前端
+npm run desktop:build    # 构建前端
+npm run tauri:dev        # 启动 Tauri 桌面应用
+npm run tauri:build      # 打包桌面应用
+npm run gateway:dev      # 启动 quote gateway
+npm run env:setup        # 初始化本地环境
+npm run env:dev          # 启动后端 + Tauri 桌面应用
+npm run env:cleanup      # 停止本地开发进程并清理缓存
 ```
 
 ## 项目结构
 
 ```text
 .
-├── apps/desktop              # Tauri + React 桌面端
-├── services/quote-gateway    # FastAPI 行情网关
-├── scripts                   # 本地环境脚本
-├── LOCAL_ENVIRONMENT.md      # 本地环境说明
+├── apps/desktop
+│   ├── src                 # React 前端
+│   └── src-tauri           # Tauri 桌面壳、图标和打包配置
+├── services/quote-gateway  # FastAPI 行情网关
+├── scripts                 # 本地 setup/dev/cleanup 脚本
+├── LOCAL_ENVIRONMENT.md    # Codex 本地环境说明
 └── fish_stock_desktop_dev_doc.md
 ```
 
-## 开源协议
+## APP 图标
+
+图标源文件在：
+
+```text
+apps/desktop/src-tauri/icons/icon-source.png
+```
+
+生成后的 Tauri 图标文件包括：
+
+```text
+apps/desktop/src-tauri/icons/icon.icns
+apps/desktop/src-tauri/icons/icon.ico
+apps/desktop/src-tauri/icons/icon.png
+apps/desktop/src-tauri/icons/32x32.png
+apps/desktop/src-tauri/icons/128x128.png
+apps/desktop/src-tauri/icons/128x128@2x.png
+```
+
+如果以后要重新生成图标，可以运行：
+
+```bash
+npm exec --workspace apps/desktop -- tauri icon apps/desktop/src-tauri/icons/icon-source.png
+```
+
+## API
+
+本地后端提供：
+
+- `GET /api/health`
+- `GET /api/symbols/search?keyword=600519`
+- `GET /api/quotes?symbols=SH.600519,SZ.300750`
+- `GET /api/source/status`
+
+## 开发说明
+
+- 前端只负责展示统一的 quote 数据结构。
+- 行情数据由 `services/quote-gateway` 聚合和兜底。
+- 隐藏模式只改变展示语义，不修改底层数据。
+- 不要提交 `.venv`、`node_modules`、Tauri `target`、构建产物或本地环境文件。
+
+## License
 
 MIT License
