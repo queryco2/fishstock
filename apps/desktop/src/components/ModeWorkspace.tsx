@@ -395,7 +395,8 @@ function MonitorWorkspace(props: WorkspaceProps) {
             <div className="process-row" key={index}>
               <span>{text(row.pid)}</span>
               <strong>{text(row.process)}</strong>
-              <em>{text(row.cpu)}</em>
+              <em>{text(row.load)}</em>
+              <b>{text(row.trend)}</b>
               <small>{text(row.memory)}</small>
             </div>
           ))}

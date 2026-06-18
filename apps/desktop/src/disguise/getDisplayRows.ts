@@ -217,8 +217,9 @@ function getColumns(mode: DisplayMode, isSuperDisguise: boolean): DisplayColumn[
       return [
         { headerName: 'PID', field: 'pid', width: 130 },
         { headerName: '进程名称', field: 'process', width: 220 },
-        { headerName: '进程占用', field: 'cpu', width: 130, align: 'right' },
-        { headerName: '内存变化', field: 'memory', width: 150, align: 'right' },
+        { headerName: '内存占用', field: 'load', width: 130, align: 'right' },
+        { headerName: '负载波动', field: 'trend', width: 130, align: 'right' },
+        { headerName: '状态', field: 'memory', width: 110, align: 'right' },
       ];
   }
 }
@@ -312,8 +313,9 @@ function getNormalRows(mode: DisplayMode, quotes: Quote[]): DisplayRow[] {
       return quotes.map((item) => ({
         pid: item.symbol,
         process: item.name,
-        cpu: `${formatPrice(item.price)}%`,
-        memory: formatPercent(item.changePercent),
+        load: `${formatPrice(item.price)} MB`,
+        trend: formatPercent(item.changePercent),
+        memory: getMonitorStatus(item.changePercent),
       }));
   }
 }
@@ -399,8 +401,9 @@ function getSuperDisguiseRows(mode: DisplayMode, quotes: Quote[]): DisplayRow[] 
         return {
           pid: item.symbol,
           process: fake.process,
-          cpu: `${formatPrice(item.price)}%`,
-          memory: formatPercent(item.changePercent),
+          load: `${formatPrice(item.price)} MB`,
+          trend: formatPercent(item.changePercent),
+          memory: getMonitorStatus(item.changePercent),
         };
       });
   }
@@ -414,6 +417,13 @@ function formatPercent(value: number | null) {
   if (value == null) return '--';
   const sign = value > 0 ? '+' : '';
   return `${sign}${value.toFixed(2)}%`;
+}
+
+function getMonitorStatus(value: number | null) {
+  if (value == null) return '等待';
+  if (Math.abs(value) >= 5) return '告警';
+  if (Math.abs(value) >= 2) return '观察';
+  return '正常';
 }
 
 function shortTime(value: string) {
