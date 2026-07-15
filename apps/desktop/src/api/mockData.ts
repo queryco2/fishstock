@@ -41,15 +41,19 @@ export const searchableSymbols: SymbolSearchResult[] = [
   { symbol: '510300', market: 'SH', type: 'etf', name: '沪深300ETF' },
   { symbol: '159915', market: 'SZ', type: 'etf', name: '创业板ETF' },
   { symbol: '000300', market: 'INDEX', type: 'index', name: '沪深300' },
+  { symbol: '00700', market: 'HK', type: 'stock', name: '腾讯控股' },
+  { symbol: '03690', market: 'HK', type: 'stock', name: '美团-W' },
+  { symbol: '09988', market: 'HK', type: 'stock', name: '阿里巴巴-W' },
 ];
 
 export function getMockQuotes(symbols: string[]): Quote[] {
   const now = dayjs().format('YYYY-MM-DD HH:mm:ss');
   return symbols.map((fullSymbol, index) => {
+    const marketHint = fullSymbol.includes('.') ? fullSymbol.split('.')[0] : undefined;
     const symbol = fullSymbol.split('.').at(-1) ?? fullSymbol;
     const base = searchableSymbols.find((item) => item.symbol === symbol) ?? {
       symbol,
-      market: detectMarket(symbol),
+      market: detectMarket(symbol, marketHint),
       type: 'stock' as const,
       name: `演示标的 ${symbol}`,
     };
@@ -71,7 +75,9 @@ export function getMockQuotes(symbols: string[]): Quote[] {
   });
 }
 
-function detectMarket(symbol: string): SymbolSearchResult['market'] {
+function detectMarket(symbol: string, marketHint?: string): SymbolSearchResult['market'] {
+  if (marketHint === 'HK') return 'HK';
+  if (/^\d{5}$/.test(symbol)) return 'HK';
   if (symbol.startsWith('6')) return 'SH';
   if (symbol.startsWith('0') || symbol.startsWith('3') || symbol.startsWith('1')) return 'SZ';
   if (symbol.startsWith('8') || symbol.startsWith('4')) return 'BJ';

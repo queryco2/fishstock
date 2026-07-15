@@ -61,7 +61,7 @@ const normalCopy: Record<DisplayMode, ModeCopy> = {
   },
   mail: {
     title: '工作收件箱',
-    subtitle: '邮件编号、发件人、主题、大小与优先级',
+    subtitle: '发件人、主题、附件大小与优先级',
     addLabel: '新建联系人',
     refreshLabel: '收取邮件',
     emptyTitle: '还没有邮件',
@@ -120,7 +120,7 @@ const disguiseCopy: Record<DisplayMode, ModeCopy> = {
   },
   mail: {
     title: '工作收件箱',
-    subtitle: '邮件编号保留原编号，名称使用办公邮件名',
+    subtitle: '发件人、主题、附件大小与优先级',
     addLabel: '新建联系人',
     refreshLabel: '收取邮件',
     emptyTitle: '还没有邮件',
@@ -199,12 +199,11 @@ function getColumns(mode: DisplayMode, isSuperDisguise: boolean): DisplayColumn[
       ];
     case 'mail':
       return [
-        { headerName: '邮件编号', field: 'mailCode', width: 130 },
         { headerName: '发件人', field: 'sender', width: 170 },
         { headerName: '主题', field: 'subject', width: 240 },
-        { headerName: '邮件大小', field: 'size', width: 150, align: 'right' },
+        { headerName: '附件大小', field: 'size', width: 150, align: 'right' },
         { headerName: '优先级', field: 'priority', width: 120, align: 'right' },
-        { headerName: '收件时间', field: 'receivedAt', width: 160 },
+        { headerName: '更新时间', field: 'receivedAt', width: 160 },
       ];
     case 'logistics':
       return [
@@ -295,9 +294,8 @@ function getNormalRows(mode: DisplayMode, quotes: Quote[]): DisplayRow[] {
       }));
     case 'mail':
       return quotes.map((item) => ({
-        mailCode: item.symbol,
         sender: '数据提醒',
-        subject: `${item.name} 同步状态通知`,
+        subject: '同步状态通知',
         size: `${formatPrice(item.price)} KB`,
         priority: formatPercent(item.changePercent),
         receivedAt: shortTime(item.updatedAt),
@@ -377,9 +375,8 @@ function getSuperDisguiseRows(mode: DisplayMode, quotes: Quote[]): DisplayRow[] 
       return quotes.map((item, index) => {
         const fake = mailDisguiseNames[index % mailDisguiseNames.length];
         return {
-          mailCode: item.symbol,
           sender: fake.sender,
-          subject: `${fake.subject} #${item.symbol}`,
+          subject: fake.subject,
           size: `${formatPrice(item.price)} KB`,
           priority: formatPercent(item.changePercent),
           receivedAt: shortTime(item.updatedAt),

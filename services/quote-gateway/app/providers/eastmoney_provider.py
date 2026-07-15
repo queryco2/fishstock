@@ -25,8 +25,8 @@ class EastMoneyProvider(QuoteProvider):
             if not data:
                 continue
 
-            price = scale_eastmoney_number(data.get("f43"))
-            change_amount = scale_eastmoney_number(data.get("f169"))
+            price = scale_eastmoney_price(data.get("f43"), market)
+            change_amount = scale_eastmoney_price(data.get("f169"), market)
             change_percent = scale_eastmoney_number(data.get("f170"))
             result.append(
                 Quote(
@@ -55,7 +55,18 @@ def scale_eastmoney_number(value) -> float | None:
     return parsed / 100
 
 
+def scale_eastmoney_price(value, market: str) -> float | None:
+    parsed = safe_float(value)
+    if parsed is None:
+        return None
+    if market == "HK":
+        return parsed / 1000
+    return parsed / 100
+
+
 def eastmoney_market_id(code: str, market: str) -> int:
+    if market == "HK":
+        return 116
     if market == "SH" or (market == "INDEX" and code.startswith(("0", "9"))):
         return 1
     if market == "BJ":

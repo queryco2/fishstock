@@ -99,6 +99,9 @@ def eastmoney_search_symbols(keyword: str) -> list[SymbolSearchResult]:
 def eastmoney_result_market(row: dict, code: str):
     quote_id = str(row.get("QuoteID") or "")
     market_type = str(row.get("MarketType") or row.get("MktNum") or "")
+    exchange = str(row.get("JYS") or row.get("Classify") or "").upper()
+    if quote_id.startswith("116.") or market_type in {"5", "116"} or exchange == "HK":
+        return "HK"
     if quote_id.startswith("1.") or market_type == "1":
         return "SH"
     if quote_id.startswith("0.") or market_type == "0":

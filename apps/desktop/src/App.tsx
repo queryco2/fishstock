@@ -84,7 +84,7 @@ export default function App() {
     onRefresh: refresh,
     onRemove: removeWatchItem,
   };
-  const lastUpdated = quotes.find((item) => item.updatedAt && item.updatedAt !== '--')?.updatedAt;
+  const lastUpdated = getLatestUpdatedAt(quotes);
   const shellTitle = getShellTitle(mode);
   const statusText = isSuperDisguise
     ? error
@@ -160,7 +160,6 @@ export default function App() {
 
       <AddSymbolDialog
         isOpen={isDialogOpen}
-        isSuperDisguise={isSuperDisguise}
         onAdd={addWatchItem}
         onClose={() => setIsDialogOpen(false)}
       />
@@ -189,4 +188,17 @@ function getShellTitle(mode: string) {
   };
 
   return titles[mode] ?? titles.excel;
+}
+
+function getLatestUpdatedAt(quotes: { updatedAt: string }[]) {
+  return quotes.reduce<string | undefined>((latest, item) => {
+    if (!item.updatedAt || item.updatedAt === '--') return latest;
+    if (!latest) return item.updatedAt;
+
+    const currentTime = dayjs(item.updatedAt).valueOf();
+    const latestTime = dayjs(latest).valueOf();
+    if (!Number.isFinite(currentTime)) return latest;
+    if (!Number.isFinite(latestTime)) return item.updatedAt;
+    return currentTime > latestTime ? item.updatedAt : latest;
+  }, undefined);
 }

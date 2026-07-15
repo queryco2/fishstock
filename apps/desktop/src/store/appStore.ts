@@ -20,6 +20,8 @@ type AppState = {
   setRefreshSeconds: (seconds: number) => void;
 };
 
+type PersistedAppState = Pick<AppState, 'mode' | 'isSuperDisguise' | 'isMiniMode' | 'watchItems' | 'refreshSeconds'>;
+
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
@@ -27,7 +29,7 @@ export const useAppStore = create<AppState>()(
       isSuperDisguise: false,
       isMiniMode: true,
       watchItems: defaultWatchItems,
-      refreshSeconds: 10,
+      refreshSeconds: 5,
       setMode: (mode) => set({ mode }),
       toggleSuperDisguise: () => set((state) => ({ isSuperDisguise: !state.isSuperDisguise })),
       toggleMiniMode: () => set((state) => ({ isMiniMode: !state.isMiniMode })),
@@ -58,6 +60,25 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'fishstock-app-state',
+      version: 1,
+      migrate: (persistedState, version): PersistedAppState => {
+        const state = {
+          mode: 'excel',
+          isSuperDisguise: false,
+          isMiniMode: true,
+          watchItems: defaultWatchItems,
+          refreshSeconds: 5,
+          ...(persistedState && typeof persistedState === 'object' ? (persistedState as Partial<PersistedAppState>) : {}),
+        } satisfies PersistedAppState;
+
+        if (version === 0 && persistedState && typeof persistedState === 'object') {
+          if (state.refreshSeconds === 10) {
+            return { ...state, refreshSeconds: 5 };
+          }
+        }
+
+        return state;
+      },
       partialize: (state) => ({
         mode: state.mode,
         isSuperDisguise: state.isSuperDisguise,

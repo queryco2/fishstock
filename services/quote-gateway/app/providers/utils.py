@@ -37,6 +37,8 @@ def parse_symbol(symbol: str) -> tuple[str, str | None]:
 def detect_market(code: str, market_hint: str | None = None) -> Market:
     if market_hint in {"SH", "SZ", "BJ", "HK", "US", "FUND", "INDEX"}:
         return market_hint  # type: ignore[return-value]
+    if is_hk_code(code):
+        return "HK"
     if code.startswith("6"):
         return "SH"
     if code.startswith(("0", "3", "1", "2")):
@@ -47,6 +49,8 @@ def detect_market(code: str, market_hint: str | None = None) -> Market:
 
 
 def detect_type(code: str) -> WatchItemType:
+    if is_hk_code(code):
+        return "stock"
     if code.startswith(("5", "1")):
         return "etf"
     if code.startswith(("0", "3", "6", "8", "4")):
@@ -56,6 +60,10 @@ def detect_type(code: str) -> WatchItemType:
 
 def normalize_symbol(symbol: str) -> str:
     return parse_symbol(symbol)[0]
+
+
+def is_hk_code(code: str) -> bool:
+    return code.isdigit() and len(code) == 5
 
 
 def em_get(

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { AllCommunityModule, ModuleRegistry, type ColDef } from 'ag-grid-community';
+import { AllCommunityModule, ModuleRegistry, type ColDef, type ICellRendererParams } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import {
   CalendarDays,
@@ -17,7 +17,7 @@ import {
   SunMedium,
   Trash2,
 } from 'lucide-react';
-import type { DisplayMode, Quote } from '../types/quote';
+import type { DisplayMode, DisplayRow, Quote } from '../types/quote';
 import type { WatchItem } from '../types/watchItem';
 import { getModeDisplay } from '../disguise/getDisplayRows';
 
@@ -37,6 +37,10 @@ type Props = {
 
 type WorkspaceProps = Props & {
   display: ReturnType<typeof getModeDisplay>;
+};
+
+type ExcelRow = DisplayRow & {
+  __watchItemId?: string;
 };
 
 export function ModeWorkspace(props: Props) {
@@ -74,17 +78,58 @@ export function ModeWorkspace(props: Props) {
 }
 
 function ExcelWorkspace(props: WorkspaceProps) {
-  const columnDefs = useMemo<ColDef[]>(
+  const rowData = useMemo<ExcelRow[]>(
     () =>
-      (props.isMiniMode ? props.display.columns.slice(0, 4) : props.display.columns).map((column, index) => ({
+      props.display.rows.map((row, index) => ({
+        ...row,
+        __watchItemId: props.watchItems[index]?.id,
+      })),
+    [props.display.rows, props.watchItems],
+  );
+  const columnDefs = useMemo<ColDef<ExcelRow>[]>(
+    () => {
+      const displayColumns = (props.isMiniMode ? props.display.columns.slice(0, 4) : props.display.columns).map((column, index) => ({
         field: column.field,
         headerName: column.headerName,
         width: props.isMiniMode ? [78, 104, 82, 82][index] : column.width,
         cellClass: column.align ? `cell-${column.align}` : undefined,
         sortable: true,
         resizable: true,
-      })),
-    [props.display.columns, props.isMiniMode],
+      }));
+
+      return [
+        ...displayColumns,
+        {
+          colId: 'actions',
+          headerName: '',
+          width: props.isMiniMode ? 48 : 58,
+          minWidth: props.isMiniMode ? 48 : 58,
+          maxWidth: props.isMiniMode ? 48 : 58,
+          pinned: 'right',
+          sortable: false,
+          resizable: false,
+          suppressHeaderMenuButton: true,
+          cellClass: 'cell-actions',
+          cellRenderer: (params: ICellRendererParams<ExcelRow>) => {
+            const id = params.data?.__watchItemId;
+
+            return (
+              <button
+                aria-label="删除行"
+                className="mini-delete row-delete"
+                disabled={!id}
+                onClick={() => id && props.onRemove(id)}
+                title="删除行"
+                type="button"
+              >
+                <Trash2 size={14} />
+              </button>
+            );
+          },
+        },
+      ];
+    },
+    [props.display.columns, props.isMiniMode, props.onRemove],
   );
 
   return (
@@ -99,7 +144,7 @@ function ExcelWorkspace(props: WorkspaceProps) {
           <AgGridReact
             columnDefs={columnDefs}
             defaultColDef={{ suppressMovable: true }}
-            rowData={props.display.rows}
+            rowData={rowData}
             rowHeight={props.isMiniMode ? 34 : 42}
             headerHeight={props.isMiniMode ? 30 : 38}
             suppressCellFocus
@@ -313,20 +358,17 @@ function MailWorkspace(props: WorkspaceProps) {
         <div className="mail-list">
           {rows.map((row, index) => (
             <article className={index === 0 ? 'mail-item active' : 'mail-item'} key={index}>
-              <strong>
-                <span>{text(row.sender)}</span>
-                <em>{text(row.mailCode)}</em>
-              </strong>
+              <strong>{text(row.sender)}</strong>
               <span>{text(row.subject)}</span>
-              <small>{text(row.priority)} · {text(row.receivedAt)}</small>
+              <small>附件大小 {text(row.size)} · {text(row.priority)} · {text(row.receivedAt)}</small>
             </article>
           ))}
         </div>
         <article className="mail-preview">
           <span className="mail-from">{text(selected?.sender ?? '系统通知')}</span>
           <h1>{text(selected?.subject ?? '暂无邮件')}</h1>
-          <div className="mail-meta">邮件编号 {text(selected?.mailCode ?? '--')}</div>
-          <p>附件大小 {text(selected?.size ?? '--')}，优先级 {text(selected?.priority ?? '--')}。</p>
+          <div className="mail-meta">附件大小 {text(selected?.size ?? '--')}</div>
+          <p>优先级 {text(selected?.priority ?? '--')}，更新时间 {text(selected?.receivedAt ?? '--')}。</p>
           <div className="mail-lines">
             <i />
             <i />
